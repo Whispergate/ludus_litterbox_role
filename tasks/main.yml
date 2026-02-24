@@ -79,7 +79,7 @@
 
 - name: Install Chocolatey
   ansible.windows.win_shell: |
-    powershell -nop -InputFormat None -ep Bypass -Command "iwr https://chocolatey.org/install.ps1 -useb | iex
+    powershell -nop -InputFormat None -ep Bypass -Command "iwr https://chocolatey.org/install.ps1 -useb | iex"
   when:
     - ludus_litterbox_install_chocolatey
     - chocolatey_check.rc != 0
