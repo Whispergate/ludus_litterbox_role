@@ -79,14 +79,23 @@
 
 - name: Install Chocolatey
   ansible.windows.win_shell: |
-    Set-ExecutionPolicy Bypass -Scope Process -Force
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
-    iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+    powershell -nop -InputFormat None -ep Bypass -Command "iwr https://chocolatey.org/install.ps1 -useb | iex
   when:
     - ludus_litterbox_install_chocolatey
     - chocolatey_check.rc != 0
   tags:
     - chocolatey
+
+- name: Install Python3 on Windows
+  block:
+    - name: Add Choco to PATH
+      ansible.windows.win_shell: SET "PATH=%PATH%;%ALLUSERSPROFILE%\chocolatey\bin"
+    - name: Install Python3 using Choco
+      ansible.windows.win_shell: powershell choco install -y python3
+    - name: Verify Chocolatey installation
+      ansible.windows.win_command: choco --version
+    - name: Verify Python installation
+      ansible.windows.win_command: python --version
 
 - name: Install LitterBox
   when: ludus_litterbox_install
@@ -124,46 +133,6 @@
       tags:
         - defender
         - dangerous
-
-    - name: Check if Python is installed
-      ansible.windows.win_shell: |
-        try {
-          $pythonVersion = python --version 2>&1
-          if ($pythonVersion -match "Python (\d+\.\d+)") {
-            $version = [version]$matches[1]
-            if ($version -ge [version]"3.11") {
-              Write-Output "Python $version found"
-              exit 0
-            }
-          }
-        } catch {}
-        exit 1
-      register: python_check
-      ignore_errors: true
-      when: ludus_litterbox_install_python
-
-    - name: Download Python installer
-      include_tasks: download_file.yml
-      vars:
-        file_name: "python-{{ ludus_litterbox_python_version }}-amd64.exe"
-        file_url: "https://www.python.org/ftp/python/{{ ludus_litterbox_python_version }}/python-{{ ludus_litterbox_python_version }}-amd64.exe"
-        file_dest: "{{ ludus_litterbox_install_dir }}\\python-installer.exe"
-      when:
-        - ludus_litterbox_install_python
-        - python_check.rc != 0
-
-    - name: Install Python
-      ansible.windows.win_shell: |
-        Start-Process -FilePath "{{ ludus_litterbox_install_dir }}\\python-installer.exe" `
-          -ArgumentList "/quiet", "InstallAllUsers=1", "PrependPath=1", "Include_test=0" `
-          -Wait -NoNewWindow
-      when:
-        - ludus_litterbox_install_python
-        - python_check.rc != 0
-      tags:
-        - python
-      notify:
-        - restart python
 
     - name: Check if git is installed
       ansible.windows.win_shell: |
