@@ -305,9 +305,6 @@
         }
       ignore_errors: true
 
-    - name: Establish persistence via Scheduled Task (SYSTEM on boot)
-      ansible.windows.win_shell: schtasks /create /tn "LitterBox_Start" /tr "C:\Users\Public\Desktop\litterbox.bat" /sc onstart /ru SYSTEM /rl HIGHEST /f
-
     - name: Execute LitterBox payload immediately and detach
       ansible.windows.win_shell: Start-Process -FilePath "C:\Users\Public\Desktop\litterbox.bat" -WindowStyle Hidden
       async: 45
