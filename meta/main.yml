@@ -3,10 +3,10 @@ dependencies: []
 
 galaxy_info:
   role_name: ludus_litterbox
-  namespace: professor-moody
+  namespace: whispergate
   author: moody
   description: Deploy LitterBox malware analysis sandbox on Windows systems in Ludus environments
-  company: Professor Moody
+  company: Whispergate
   license: MIT
   min_ansible_version: "2.10"
   
