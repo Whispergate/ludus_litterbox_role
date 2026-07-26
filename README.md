@@ -142,12 +142,12 @@ ludus_litterbox_debug: false                              # Enable debug logging
 LitterBox supports [Elastic Defend](https://github.com/BlackSnufkin/LitterBox/wiki/Elastic-Defend-Setup) as an EDR backend. This requires three components:
 
 1. **Elastic Stack** (Elasticsearch + Kibana + Fleet) — deployed separately
-2. **Whiskers agent** on the EDR VM — use the companion [`ludus_litterbox_whiskers_agent`](https://github.com/professor-moody/ludus_litterbox_whiskers_agent) role
+2. **Whiskers agent** on the EDR VM — use the companion [`ludus_litterbox_whiskers_agent`](https://github.com/Whispergate/ludus_litterbox_whiskers_agent) role
 3. **EDR profile** in LitterBox — configured by this role when enabled
 
 ### Prerequisites
 
-- The [`ludus_litterbox_whiskers_agent`](https://github.com/professor-moody/ludus_litterbox_whiskers_agent) role deployed on the EDR Windows VM
+- The [`ludus_litterbox_whiskers_agent`](https://github.com/Whispergate/ludus_litterbox_whiskers_agent) role deployed on the EDR Windows VM
 - Elastic Stack running and accessible
 - Elastic Agent with Elastic Defend enrolled on the EDR Windows VM
 - Detection Engine rules enabled in Kibana (Security -> Manage -> Rules)
