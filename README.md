@@ -137,6 +137,92 @@ ludus_litterbox_debug: false                              # Enable debug logging
     ludus_litterbox_enable_dynamic: false        # Static analysis only
 ```
 
+## Elastic Defend Integration
+
+LitterBox supports [Elastic Defend](https://github.com/BlackSnufkin/LitterBox/wiki/Elastic-Defend-Setup) as an EDR backend. This requires three components:
+
+1. **Elastic Stack** (Elasticsearch + Kibana + Fleet) — deployed separately
+2. **Whiskers agent** on the EDR VM — use the companion [`ludus_litterbox_whiskers_agent`](https://github.com/professor-moody/ludus_litterbox_whiskers_agent) role
+3. **EDR profile** in LitterBox — configured by this role when enabled
+
+### Prerequisites
+
+- The [`ludus_litterbox_whiskers_agent`](https://github.com/professor-moody/ludus_litterbox_whiskers_agent) role deployed on the EDR Windows VM
+- Elastic Stack running and accessible
+- Elastic Agent with Elastic Defend enrolled on the EDR Windows VM
+- Detection Engine rules enabled in Kibana (Security -> Manage -> Rules)
+- An Elasticsearch API key (see below)
+- Whiskers agent deployed on the EDR VM and whitelisted in Defend's Trusted Applications
+
+### Creating the Elasticsearch API Key
+
+1. Open Kibana (e.g. `https://<elastic-ip>:5601`)
+2. Navigate to **Stack Management** -> **API keys** (under Security)
+3. Click **Create API key**
+4. Set a name (e.g. `litterbox-readonly`)
+5. Enable **Restrict privileges** and paste the following role descriptor:
+
+```json
+{
+  "litterbox_reader": {
+    "cluster": ["monitor"],
+    "indices": [
+      {
+        "names": [
+          ".alerts-security.alerts-*",
+          ".internal.alerts-security.alerts-*",
+          ".ds-logs-endpoint.alerts-*"
+        ],
+        "privileges": ["read"]
+      }
+    ]
+  }
+}
+```
+
+6. Click **Create API key**
+7. Copy the **Encoded** value — this is the base64 string to use as `ludus_litterbox_elastic_apikey`
+
+> **Note:** The first two indices capture Detection Engine rule signals, the third captures Elastic Defend host-level endpoint alerts. Both are needed for LitterBox to get the full alert picture.
+
+### Enable Elastic Defend
+
+```yaml
+  vars:
+    ludus_litterbox_elastic_enabled: true
+    ludus_litterbox_elastic_agent_ip: "10.x.x.x"      # EDR VM running Whiskers
+    ludus_litterbox_elastic_agent_port: 8080
+    ludus_litterbox_elastic_url: "10.x.x.x:9200"      # Elasticsearch host:port
+    ludus_litterbox_elastic_apikey: "<base64-key>"     # API key from Kibana
+    ludus_litterbox_elastic_verify_tls: false
+```
+
+### Elastic Defend Variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `ludus_litterbox_elastic_enabled` | `false` | Enable Elastic Defend EDR profile |
+| `ludus_litterbox_elastic_agent_ip` | `""` | IP of the EDR VM running Whiskers |
+| `ludus_litterbox_elastic_agent_port` | `8080` | Whiskers agent port |
+| `ludus_litterbox_elastic_url` | `""` | Elasticsearch host:port |
+| `ludus_litterbox_elastic_apikey` | `""` | Base64-encoded API key from Kibana |
+| `ludus_litterbox_elastic_verify_tls` | `false` | Verify Elasticsearch TLS certificate |
+| `ludus_litterbox_elastic_wait_alerts` | `90` | Seconds to wait for alerts after execution |
+| `ludus_litterbox_elastic_av_block_wait` | `60` | Seconds to wait for AV block verdicts |
+| `ludus_litterbox_elastic_exec_timeout` | `60` | Execution timeout in seconds |
+
+### Verify Elastic Integration
+
+After deployment, verify from the LitterBox VM:
+
+```bash
+# Check Whiskers agent connectivity
+curl http://<edr-vm-ip>:8080/api/info
+
+# Check Elastic connectivity (from LitterBox Python env)
+python GrumpyCats/grumpycat.py edr-status
+```
+
 ## Post-Installation Usage
 
 ### Accessing LitterBox
@@ -270,6 +356,8 @@ The role supports the following Ansible tags for selective execution:
 - `directories` - Directory creation
 - `defender` - Windows Defender configuration (use with caution!)
 - `dangerous` - High-risk operations
+- `elastic` - Elastic Defend EDR profile configuration
+- `edr` - EDR integration tasks
 
 ## Contributing
 
@@ -284,6 +372,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 ## Additional Resources
 
 - [LitterBox GitHub Repository](https://github.com/BlackSnufkin/LitterBox)
+- [Ludus LitterBox Whiskers Agent Role](https://github.com/professor-moody/ludus_litterbox_whiskers_agent) - Companion role for deploying the Whiskers agent on EDR VMs
 - [GrumpyCats API Client](https://github.com/BlackSnufkin/GrumpyCats)
 - [Ludus Documentation](https://docs.ludus.cloud)
 - [Ansible Windows Documentation](https://docs.ansible.com/ansible/latest/collections/ansible/windows/)

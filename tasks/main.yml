@@ -308,6 +308,13 @@
     - name: Execute LitterBox task
       ansible.windows.win_shell: schtasks /run /tn "LITTERBOX"
 
+    - name: Configure Elastic Defend EDR profile
+      ansible.builtin.include_tasks: elastic_profile.yml
+      when: ludus_litterbox_elastic_enabled
+      tags:
+        - elastic
+        - edr
+
     - name: Display installation complete message
       ansible.builtin.debug:
         msg:

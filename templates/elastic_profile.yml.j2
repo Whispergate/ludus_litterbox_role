@@ -1,0 +1,12 @@
+name: "elastic"
+display_name: "Elastic Defend"
+kind: "elastic"
+
+agent_url: "http://{{ ludus_litterbox_elastic_agent_ip }}:{{ ludus_litterbox_elastic_agent_port }}"
+elastic_url: "https://{{ ludus_litterbox_elastic_url }}"
+elastic_apikey: "{{ ludus_litterbox_elastic_apikey }}"
+elastic_verify_tls: {{ ludus_litterbox_elastic_verify_tls | lower }}
+
+wait_seconds_for_alerts: {{ ludus_litterbox_elastic_wait_alerts }}
+av_block_wait_seconds: {{ ludus_litterbox_elastic_av_block_wait }}
+exec_timeout_seconds: {{ ludus_litterbox_elastic_exec_timeout }}
